@@ -1,6 +1,6 @@
 #include "game_scene.h"
 
-Entity init_player(const char* texture_path, int x, int y) {
+Entity init_player(const char* texture_path, i32 x, i32 y) {
     Entity p = {}; 
     p.raylib_texture = LoadTexture(texture_path);
     p.x = x;
@@ -29,7 +29,7 @@ void update_player(Entity *player, int *tick, std::vector<Entity> enemies, std::
     for (auto& bullet : *enemy_bullets) {
         if (bullet.is_alive) {
             if (aabb_colliding(bullet.x, bullet.y, player->x, player->y, 5, 90)) {
-                 player->hp -= bullet.damage; 
+                player->hp--;
                 bullet.is_alive = false;
             }
         }
@@ -37,7 +37,7 @@ void update_player(Entity *player, int *tick, std::vector<Entity> enemies, std::
 
 }
 
-int rand_range(int left, int right) {
+int rand_range(i32 left, i32 right) {
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
     std::uniform_int_distribution<> distr(left, right); // define the range
@@ -46,7 +46,7 @@ int rand_range(int left, int right) {
 
 void update_enemy(Entity *enemy, double dt, std::vector<Bullet>* bullets) {
     enemy->x -= enemy->speed;    
-    int random = rand_range(0, 700);
+    i32 random = rand_range(0, 700);
 
     if (random <= 10) {
         Bullet* b = grab_bullet(bullets);
@@ -56,7 +56,9 @@ void update_enemy(Entity *enemy, double dt, std::vector<Bullet>* bullets) {
             b->y = enemy->y + 50;
         }
     }
-    // @TODO: bullets die whenever a ship dies, unattach the update function
+}
+
+void update_enemy_bullets(std::vector<Bullet>* bullets) {
     for (auto& bullet : *bullets) {
         if (bullet.is_alive) {
             bullet.x -= 10;
@@ -88,7 +90,7 @@ void Entity::shoot() {
 }
 
 void update_bullet(Entity* entity, DIRECTION direction) {
-    int index = 0;
+    size_t index = 0;
     for (auto& bullet : entity->bullets) {
         if(bullet.x < 850 && bullet.x > -20) {
             if (direction == RIGHT)
@@ -144,7 +146,7 @@ bool check_for_collisions(Entity *ship, std::vector<Bullet> *bullets) {
     return false;
 }
 
-inline bool aabb_colliding(int x, int y, int x1, int y1, int off_x, int off_y) {
+inline bool aabb_colliding(i32 x, i32 y, i32 x1, i32 y1, i32 off_x, i32 off_y) {
     return ( (x >= x1 - off_x) && (x <= x1 + off_x) && (y <= y1 + off_y) && (y > y1 + 5) );
 }
 

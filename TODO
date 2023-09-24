@@ -1,9 +1,3 @@
-@Fix
-    - Deattach enemy bullet update from ship update
-    - Make hp bar update according to player hp
-    - Score
-    - Use fixed types
-
 @Feature 
     - Enemy thrust animations
     - Items

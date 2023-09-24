@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "game_scene.h"
 #include "config.h"
+#include "types.h" 
 #include <vector>
 #include <iostream>
 #include <assert.h>
@@ -25,6 +26,13 @@ enum Scene {
 };
 
 int TARGET_FRAMERATE = 60;
+
+int player_hp_to_rect_width(u8 hp) {
+    u8 ret = 1;
+    for (u8 i = 1; i < hp; i++) 
+        ret = ret + 20;
+    return ret;
+}
 
 int main() {
     InitWindow(WIDTH, HEIGHT, "invaders");
@@ -156,6 +164,7 @@ int main() {
                 }
                 
                 update_all_enemies(&game, t);
+                update_enemy_bullets(&game.enemy_bullets);
                 
                 size_t enemy_index = 0;
                 for (auto enemy : game.enemies) {
@@ -205,8 +214,10 @@ int main() {
             }
 
             DrawTexture(game.player.raylib_texture, game.player.x, game.player.y, WHITE);
-            DrawRectangle(game.player.x + 30,game.player.y + 90,game.player.hp + 60,10,RED);
-            
+
+            DrawRectangle(game.player.x + 30,game.player.y + 90,player_hp_to_rect_width(game.player.hp),10,RED);
+            DrawRectangleLines(game.player.x + 30,game.player.y + 90, 80 ,10, WHITE);
+
             Vector2 thrust_pos = { (float) game.player.x - 10, (float) game.player.y + 60 };
             DrawTextureRec(thrust_texture, thrust_rect, thrust_pos, WHITE);
             DrawText(std::to_string(game.player.score).c_str(), 10, 10, 20, MAROON);      

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <stdint.h>
 #include <map>
+#include <string>
 #include "game_scene.h"
 
 enum Property_Type {
