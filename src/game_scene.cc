@@ -8,7 +8,7 @@ Entity init_player(const char* texture_path, int x, int y) {
     return p;
 }
 
-void update_player(Entity *player, int *tick, std::vector<Entity> enemies) {
+void update_player(Entity *player, int *tick, std::vector<Entity> enemies, std::vector<Bullet>* enemy_bullets) {
     if (IsKeyDown(KEY_W)) {
         player->y -= player->speed;  
     }
@@ -25,23 +25,16 @@ void update_player(Entity *player, int *tick, std::vector<Entity> enemies) {
     }
     
     update_bullet(player, RIGHT);
-    
-    // @TODO: Check for enemy collisions
-    //
-    for (auto enemy : enemies) {
-        bool has_collided = check_for_collisions(player, &enemy.bullets);
-        if (has_collided) {
-            player->hp -= 5;
+
+    for (auto& bullet : *enemy_bullets) {
+        if (bullet.is_alive) {
+            if (aabb_colliding(bullet.x, bullet.y, player->x, player->y, 5, 90)) {
+                 player->hp -= bullet.damage; 
+                bullet.is_alive = false;
+            }
         }
     }
 
-}
-
-// target_x: object to check collision on
-// object_x: object that is colliding with target
-inline bool is_in_range_with_offset(int target_x, int object_x, int offset) {
-    if (target_x == object_x) return true;
-    
 }
 
 int rand_range(int left, int right) {
@@ -51,42 +44,42 @@ int rand_range(int left, int right) {
     return distr(gen);
 }
 
-void update_enemy(Entity *enemy, int *tick) {
+void update_enemy(Entity *enemy, double dt, std::vector<Bullet>* bullets) {
     enemy->x -= enemy->speed;    
-    int random = rand_range(0, 500);
+    int random = rand_range(0, 700);
 
-    if (random < 20) {
-        enemy->shoot();
-    } 
-
-    int bullet_index = 0;
-    for (auto& bullet : enemy->bullets) {
-        if (bullet.x < 0) {
-            enemy->bullets.erase(enemy->bullets.begin() + bullet_index);
+    if (random <= 10) {
+        Bullet* b = grab_bullet(bullets);
+        if (b != nullptr) {
+            b->is_alive = true;
+            b->x = enemy->x;
+            b->y = enemy->y + 50;
         }
-        bullet.x -= 20;
-        bullet_index++;
+    }
+    // @TODO: bullets die whenever a ship dies, unattach the update function
+    for (auto& bullet : *bullets) {
+        if (bullet.is_alive) {
+            bullet.x -= 10;
+            if (bullet.x < 0) {
+                bullet.is_alive = false;
+            }
+        }
     }
 }
 
-void update_all_enemies(Game_Scene* game_scene, int *tick) {
+void update_all_enemies(Game_Scene* game_scene, double dt) {
     int enemy_index = 0;
     for (auto& enemy : game_scene->enemies) {
-        update_enemy(&enemy, tick);
+        update_enemy(&enemy, dt, &game_scene->enemy_bullets);
         bool has_collided = check_for_collisions(&enemy, &game_scene->player.bullets);
-        if (has_collided) {
-            if (enemy.hp <= 0) {
-                game_scene->enemies.erase(game_scene->enemies.begin() + enemy_index);
-            }
+        if ((has_collided && enemy.hp <= 0) || enemy.x < 0) {
+            //game_scene->enemies.erase(game_scene->enemies.begin() + enemy_index);
         }
         enemy_index++;
     }
 }
 
 void Entity::shoot() {
-    //Bullet b = { LoadTexture(this->bullet_texture_path), this->x + raylib_texture.width - 10, this->y + (raylib_texture.height / 3)
-    //};
-    
     Bullet b;
     b.x = this->x + this->raylib_texture.width;
     b.y = this->y + (this->raylib_texture.height / 3);
@@ -120,22 +113,39 @@ void destroy_enemy(Entity *enemy) {
     UnloadTexture(enemy->raylib_texture);
 }
 
+void init_bullets(Game_Scene* game) {
+    size_t total_bullets = 30;
+    for (size_t i = 0; i < total_bullets; i++) {
+        game->enemy_bullets.push_back( Bullet {0,0} );
+    }
+}
+
+Bullet* grab_bullet(std::vector<Bullet>* enemy_bullets) {
+    for (auto& bullet : *enemy_bullets) {
+        if (!bullet.is_alive)
+            return &bullet;
+    }
+
+    return nullptr;
+}
+
 
 bool check_for_collisions(Entity *ship, std::vector<Bullet> *bullets) {
     int bullet_index = 0;
     for (auto bullet : *bullets) {
-        if (bullet.x > (ship->x + 5)) {
-            if (bullet.y < (ship->y + 20) && bullet.y > (ship->y - 20)) {
-                ship->hp -= bullet.damage;
-                if (ship-> hp <= 10) {
-                    bullets->erase(bullets->begin() + bullet_index);
-                }
-                return true;
-            }
+        if (aabb_colliding(bullet.x, bullet.y, ship->x, ship->y, 3, 90)) {
+            //ship->hp -= bullet.damage; @TODO
+            ship->hp = 0;
+            bullets->erase(bullets->begin() + bullet_index);
+            return true;
         }
         bullet_index++;
     }
     return false;
+}
+
+inline bool aabb_colliding(int x, int y, int x1, int y1, int off_x, int off_y) {
+    return ( (x >= x1 - off_x) && (x <= x1 + off_x) && (y <= y1 + off_y) && (y > y1 + 5) );
 }
 
 // @TODO: Items
