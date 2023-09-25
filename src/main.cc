@@ -65,6 +65,9 @@ int main() {
     Texture2D thrust_texture = LoadTexture("data/anims/exhaust.png");
     Rectangle thrust_rect = {0.0f, 0.0f, (float) thrust_texture.width / 4, (float) thrust_texture.height };
 
+    Texture2D bullet_texture = LoadTexture("data/anims/shoot.png");
+    Rectangle bullet_rect = {0.0f, 0.0f, (float) bullet_texture.width / 10, (float) bullet_texture.height };
+
     double t = 0.0;
     double dt = 1.0 / (double) TARGET_FRAMERATE;
     
@@ -97,11 +100,39 @@ int main() {
     Vector2 explosion_position;
     bool play_explosion = false;
 
+    u8 menu_option = 0;
     while (!WindowShouldClose() && game.playing) {
         if (game_scene == START_SCREEN) {
+
             if (IsKeyDown(KEY_SPACE)) {
-                game_scene = PLAYING;
+                switch (menu_option) {
+                    case 0:
+                        game_scene = PLAYING;
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        game.playing = false;
+                        break;
+                }
             }
+
+            if (IsKeyPressed(KEY_S)) {
+                if (menu_option < 2) {
+                    menu_option++;
+                } else {
+                    menu_option = 0;
+                }
+            }
+
+            if (IsKeyPressed(KEY_W)) {
+                if (menu_option > 0) {
+                    menu_option--;
+                } else {
+                    menu_option = 2;
+                }
+            }
+
             BeginDrawing();
             ClearBackground(RAYWHITE);
 
@@ -109,14 +140,29 @@ int main() {
                 for(int i = 0; i < WIDTH; i += background_image.width)
                     DrawTexture(background_image, i, j,WHITE);
             }
-
-
-            DrawText("PRESS SPACE TO PLAY", 50, 50, 40, MAROON);
+            
+            switch (menu_option) {
+                    case 0:
+                        DrawRectangle(30, 50, 20, 10, WHITE);
+                        break;
+                    case 1:
+                        DrawRectangle(30, 100, 20, 10, WHITE);
+                        break;
+                    case 2:
+                        DrawRectangle(30, 150, 20, 10, WHITE);
+                        break;
+            }
+            
+            DrawText("Play", 50, 50, 40, MAROON);
+            DrawText("Options", 50, 100, 40, MAROON);
+            DrawText("Quit", 50, 150, 40, MAROON);
             EndDrawing();
 
         }
 
         if (game_scene == GAME_OVER) {
+            if (IsKeyPressed(KEY_SPACE)) game_scene = START_SCREEN; // @TODO: Reload game state
+
             BeginDrawing();
             ClearBackground(RAYWHITE);
             for(int j = 0; j < HEIGHT; j+= background_image.height) {
@@ -185,6 +231,7 @@ int main() {
                     if (current_frame > 5) current_frame = 0;
                     frame_rect.x = (float) current_frame * (float) explosion_texture.width / 11;
                     thrust_rect.x = (float) current_frame * (float) thrust_texture.width / 4;
+                    bullet_rect.x = (float) current_frame * (float) bullet_rect.width / 10;
                 }
             }
 
@@ -197,7 +244,9 @@ int main() {
             }
 
             for (auto bullet : game.player.bullets) {
-                DrawTexture(texture_pool.bullet, bullet.x, bullet.y, WHITE);
+                //DrawTexture(texture_pool.bullet, bullet.x, bullet.y, WHITE);
+                Vector2 pos = { (float) bullet.x, (float) bullet.y };
+                DrawTextureRec(bullet_texture, bullet_rect, pos, WHITE);
             }
             
             for (auto enemy : game.enemies) {
@@ -210,7 +259,11 @@ int main() {
             }
 
             for (auto& bullet : game.enemy_bullets) {
-                if (bullet.is_alive) DrawTexture(texture_pool.bullet, bullet.x, bullet.y, WHITE);
+                //if (bullet.is_alive) DrawTexture(texture_pool.bullet, bullet.x, bullet.y, WHITE);
+                if (bullet.is_alive) {
+                    Vector2 pos = { (float) bullet.x, (float) bullet.y };
+                    DrawTextureRec(bullet_texture, bullet_rect, pos, WHITE);
+                }
             }
 
             DrawTexture(game.player.raylib_texture, game.player.x, game.player.y, WHITE);

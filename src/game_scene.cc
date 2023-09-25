@@ -23,6 +23,24 @@ void update_player(Entity *player, int *tick, std::vector<Entity> enemies, std::
             *tick = *tick + 1;
         }
     }
+
+    if (IsGamepadAvailable(0)) {
+        if (IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_UP)) {
+            player->y -= player->speed;  
+        }
+
+        if (IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN)) {
+            player->y += player->speed;  
+        }
+        
+        if (IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN)) {
+            if (*tick == 0) {
+                player->shoot();
+                *tick = *tick + 1;
+            }
+        }
+
+    }
     
     update_bullet(player, RIGHT);
 
