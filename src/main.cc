@@ -38,13 +38,13 @@ int main() {
     InitWindow(WIDTH, HEIGHT, "invaders");
     SetTargetFPS(TARGET_FRAMERATE);
 
-    Texture2D background_image = LoadTexture("data/PNG/Space_Stars2.png");
+    Texture2D background_image = LoadTexture("data/static/Space_Stars2.png");
 
     Game_Scene game;
     Config conf = read_config("config.ini"); 
 
     
-    game.player = init_player("data/PNG/Ship2/Ship2.png", 50, 50);
+    game.player = init_player("data/static/Ship2.png", 50, 50);
     init_bullets(&game);
 
     int shoot_timer = 0;
@@ -56,8 +56,8 @@ int main() {
     Scene game_scene = START_SCREEN;
     
     TexturePool texture_pool;
-    texture_pool.bullet = LoadTexture("data/PNG_Animations/Shots/Shot1/shot1_3.png");
-    texture_pool.enemy_ship = LoadTexture("data/PNG/Ship4/Ship4.png");
+    texture_pool.bullet = LoadTexture("data/static/shot1_3.png");
+    texture_pool.enemy_ship = LoadTexture("data/static/Ship4.png");
     
     Texture2D explosion_texture = LoadTexture("data/anims/explosion.png");
     Rectangle frame_rect = {0.0f, 0.0f, (float) explosion_texture.width / 11, (float) explosion_texture.height };
@@ -141,21 +141,9 @@ int main() {
                     DrawTexture(background_image, i, j,WHITE);
             }
             
-            switch (menu_option) {
-                    case 0:
-                        DrawRectangle(30, 50, 20, 10, WHITE);
-                        break;
-                    case 1:
-                        DrawRectangle(30, 100, 20, 10, WHITE);
-                        break;
-                    case 2:
-                        DrawRectangle(30, 150, 20, 10, WHITE);
-                        break;
-            }
-            
-            DrawText("Play", 50, 50, 40, MAROON);
-            DrawText("Options", 50, 100, 40, MAROON);
-            DrawText("Quit", 50, 150, 40, MAROON);
+            DrawText("Play", 50, 50, 40, menu_option == 0 ? WHITE : MAROON);
+            DrawText("Options", 50, 100, 40, menu_option == 1 ? WHITE : MAROON);
+            DrawText("Quit", 50, 150, 40, menu_option == 2 ? WHITE : MAROON);
             EndDrawing();
 
         }
@@ -244,7 +232,6 @@ int main() {
             }
 
             for (auto bullet : game.player.bullets) {
-                //DrawTexture(texture_pool.bullet, bullet.x, bullet.y, WHITE);
                 Vector2 pos = { (float) bullet.x, (float) bullet.y };
                 DrawTextureRec(bullet_texture, bullet_rect, pos, WHITE);
             }
@@ -259,7 +246,6 @@ int main() {
             }
 
             for (auto& bullet : game.enemy_bullets) {
-                //if (bullet.is_alive) DrawTexture(texture_pool.bullet, bullet.x, bullet.y, WHITE);
                 if (bullet.is_alive) {
                     Vector2 pos = { (float) bullet.x, (float) bullet.y };
                     DrawTextureRec(bullet_texture, bullet_rect, pos, WHITE);
@@ -273,12 +259,11 @@ int main() {
 
             Vector2 thrust_pos = { (float) game.player.x - 10, (float) game.player.y + 60 };
             DrawTextureRec(thrust_texture, thrust_rect, thrust_pos, WHITE);
-            DrawText(std::to_string(game.player.score).c_str(), 10, 10, 20, MAROON);      
+            //DrawText(std::to_string(game.player.score).c_str(), 10, 10, 20, MAROON);      
                                                                          
             if (game_scene == PAUSE) {
                 DrawText("PRESS SPACE TO RESUME", 50, 50, 40, MAROON);       
             }
-            DrawFPS(0,0);
 
             EndDrawing();
         }

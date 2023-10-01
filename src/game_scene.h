@@ -19,12 +19,12 @@ struct Bullet {
 struct Entity {
     Texture2D raylib_texture;
     Texture2D bullet_texture;
-    const char* bullet_texture_path = "data/PNG_Animations/Shots/Shot1/shot1_3.png";
+    const char* bullet_texture_path = "data/static/shot1_3.png";
 
     i32 x;
     i32 y;
 
-    u8 hp = 80;
+    u8 hp = 5;
     u8 speed = 5;
     u8 shoot_speed = 30;
     u16 score = 0;
